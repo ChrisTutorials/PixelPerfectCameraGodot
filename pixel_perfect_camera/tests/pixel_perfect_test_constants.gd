@@ -5,13 +5,13 @@ class_name PixelPerfectTestConstants
 #region UID Preloads
 
 ## Camera follower script - main pixel perfect implementation
-const CameraFollower = preload("uid://ce4juabwch817")
+const CameraFollower = preload("res://addons/pixel_perfect_camera/pixel_perfect_camera_2d.gd")
 
 ## Camera diagnostics overlay - jitter visualization and debugging
-const CameraDiagnostics = preload("uid://d3spi7811bm8r")
+const CameraDiagnostics = preload("res://addons/pixel_perfect_camera/camera_diagnostics.gd")
 
 ## Stable camera follower - alternative implementation with reduced jitter
-const CameraFollowerStable = preload("uid://nwn4yh61525t")
+const CameraFollowerStable = preload("res://addons/pixel_perfect_camera/pixel_perfect_camera_2d.gd")
 
 #endregion
 
@@ -47,14 +47,14 @@ const MOVEMENT_STEPS: int = 20
 
 #region Demo Scene References
 
-## Top-down demo scene path for integration testing - using UID for better maintainability
-const DEMO_TOP_DOWN_SCENE: PackedScene = preload("uid://7ojjnd07ku2q")
+## Top-down demo scene path for integration testing
+const DEMO_TOP_DOWN_SCENE: PackedScene = preload("res://demos/top_down/demo_top_down.tscn")
 
-## Platformer demo scene path for integration testing - using UID for better maintainability
-const DEMO_PLATFORMER_SCENE: PackedScene = preload("uid://gwnl7u114jjn")
+## Platformer demo scene path for integration testing
+const DEMO_PLATFORMER_SCENE: PackedScene = preload("res://demos/platformer/demo_platformer.tscn")
 
-## Pixel perfect demo scene path - using UID for better maintainability
-const DEMO_PIXEL_PERFECT_SCENE: PackedScene = preload("uid://bvn8x7k2m4n5p")
+## Pixel perfect demo scene path
+const DEMO_PIXEL_PERFECT_SCENE: PackedScene = preload("res://demos/camera/pixel_perfect_demo.tscn")
 
 #endregion
 

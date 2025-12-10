@@ -7,7 +7,7 @@ extends GdUnitTestSuite
 ## Test that pixel perfect camera snaps to whole pixels
 func test_pixel_snapping() -> void:
 	var camera = Camera2D.new()
-	camera.script = preload("uid://dt2el6566qhep")
+	camera.script = preload("res://addons/pixel_perfect_camera/pixel_perfect_camera_2d.gd")
 	camera.pixel_perfect = true
 	add_child(camera)
 	
@@ -30,7 +30,7 @@ func test_pixel_snapping() -> void:
 ## Test that pixel perfect can be toggled
 func test_pixel_perfect_toggle() -> void:
 	var camera = Camera2D.new()
-	camera.script = preload("uid://dt2el6566qhep")
+	camera.script = preload("res://addons/pixel_perfect_camera/pixel_perfect_camera_2d.gd")
 	camera.pixel_perfect = true
 	add_child(camera)
 	
@@ -48,7 +48,7 @@ func test_pixel_perfect_toggle() -> void:
 ## Test camera configuration for pixel perfect
 func test_camera_configuration() -> void:
 	var camera = Camera2D.new()
-	camera.script = preload("uid://dt2el6566qhep")
+	camera.script = preload("res://addons/pixel_perfect_camera/pixel_perfect_camera_2d.gd")
 	camera.pixel_perfect = true
 	add_child(camera)
 	
@@ -64,7 +64,7 @@ func test_camera_configuration() -> void:
 ## Test jitter reduction during movement
 func test_jitter_reduction() -> void:
 	var camera = Camera2D.new()
-	camera.script = preload("uid://dt2el6566qhep")
+	camera.script = preload("res://addons/pixel_perfect_camera/pixel_perfect_camera_2d.gd")
 	camera.pixel_perfect = true
 	add_child(camera)
 	
@@ -126,11 +126,11 @@ func test_zoom_compatibility(
 ## Test diagnostics overlay functionality
 func test_diagnostics_overlay() -> void:
 	var camera = Camera2D.new()
-	camera.script = preload("uid://dt2el6566qhep")
+	camera.script = preload("res://addons/pixel_perfect_camera/pixel_perfect_camera_2d.gd")
 	add_child(camera)
 	
 	# Add diagnostics
-	var diagnostics = preload("uid://ndpu6ldcizpiy").new()
+	var diagnostics = preload("res://addons/pixel_perfect_camera/camera_diagnostics.gd").new()
 	diagnostics.camera = camera
 	add_child(diagnostics)
 	
@@ -146,7 +146,7 @@ func test_diagnostics_overlay() -> void:
 
 ## Test with real demo scene integration
 func test_demo_scene_integration() -> void:
-	var demo_scene = preload("uid://kresn4jmtuxai").instantiate()
+	var demo_scene = preload("res://demos/camera/pixel_perfect_demo.tscn").instantiate()
 	add_child(demo_scene)
 	
 	# Find camera in demo
@@ -176,7 +176,7 @@ func test_demo_scene_integration() -> void:
 ## Test pixel perfect vs default camera comparison
 func test_value_comparison() -> void:
 	var pixel_camera = Camera2D.new()
-	pixel_camera.script = preload("uid://dt2el6566qhep")
+	pixel_camera.script = preload("res://addons/pixel_perfect_camera/pixel_perfect_camera_2d.gd")
 	pixel_camera.pixel_perfect = true
 	
 	var default_camera = Camera2D.new()
@@ -213,7 +213,7 @@ func test_value_comparison() -> void:
 ## Test with zero position
 func test_zero_position() -> void:
 	var camera = Camera2D.new()
-	camera.script = preload("uid://dt2el6566qhep")
+	camera.script = preload("res://addons/pixel_perfect_camera/pixel_perfect_camera_2d.gd")
 	camera.pixel_perfect = true
 	add_child(camera)
 	
