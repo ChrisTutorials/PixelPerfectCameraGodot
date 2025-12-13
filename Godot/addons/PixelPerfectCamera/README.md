@@ -1,14 +1,8 @@
 # PixelPerfectCamera (Godot 4, C#)
 
-This repository contains a pixel-perfect `Camera2D` implementation for Godot 4 in **C#**.
-
-The canonical addon folder is:
-
-- `Godot/addons/PixelPerfectCamera`
+`PixelPerfectCamera2D` is a `Camera2D` implementation that helps eliminate visible jitter in pixel-art games by ensuring the final camera positioning resolves to whole pixels.
 
 ## What it does
-
-`PixelPerfectCamera2D` helps eliminate visible jitter in pixel-art games by ensuring the final camera positioning resolves to whole pixels.
 
 - Snaps the camera result to whole pixels to avoid sub-pixel jitter
 - Works alongside Godot's built-in `Camera2D` smoothing features
@@ -18,8 +12,7 @@ The canonical addon folder is:
 
 Copy this folder into your Godot project:
 
-- From this repo: `Godot/addons/PixelPerfectCamera/`
-- Into your project: `res://addons/PixelPerfectCamera/`
+- `res://addons/PixelPerfectCamera/`
 
 Then rebuild your C# solution (if your editor doesn’t do it automatically).
 
@@ -38,11 +31,12 @@ Then rebuild your C# solution (if your editor doesn’t do it automatically).
 
 Guideline:
 
-- Use `true` when following characters that move in `_PhysicsProcess`.
+- Use `true` when following characters that move in `_PhysicsProcess` (common for `CharacterBody2D`).
 - Use `false` when following targets that move in `_Process`.
 
 The camera should update in the same cycle as the followed target to prevent jitter.
 
-## Notes
+## Files
 
-This repo also includes a GDScript-based camera implementation under `pixel_perfect_camera/`. If you only want the C# addon, use the `Godot/addons/PixelPerfectCamera/` folder.
+- `PixelPerfectCamera2D.cs`
+

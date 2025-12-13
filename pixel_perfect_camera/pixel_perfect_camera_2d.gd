@@ -1,103 +1,91 @@
 ## PixelPerfectCamera2D
-## Robust pixel-perfect camera solution for Godot 4
-## Eliminates jitter by snapping the final camera position to integers
-## This extends the base Camera2D, allowing you to use all built-in drag and smoothing features
-## 
-## USAGE:
-## - For direct follow: Leave drag margins disabled (default behavior)
-## - For smooth drag: Enable drag_horizontal_enabled/drag_vertical_enabled in inspector
-## - Pixel snapping works automatically in both modes
+## A Camera2D that ensures pixel-perfect positioning by rounding to whole pixels.
+## This prevents jittering/stuttering in pixel-art games caused by sub-pixel positioning.
 ##
-## LOGGING BEST PRACTICES:
-## - Use PackedStringArray + single print() instead of consecutive print statements
-## - Format strings with %s and array interpolation for cleaner output
-## - Call debug_status() for comprehensive camera state information
+## For best results:
+## - Use PhysicsProcess mode (default) when following objects that move in _physics_process
+## - Use Process mode when following objects that move in _process
+## The camera must update in the same cycle as the target to avoid jitter.
+##
+## Behavior:
+## - **Pixel-perfect output**: each update snaps the camera to whole pixels by applying a correction via `offset`.
+## - **Non-invasive**: does not overwrite `global_position` (avoids fighting Camera2D follow, smoothing, or RemoteTransform2D).
+## - **Update-cycle correctness**: must run in the same cycle as the followed target to avoid jitter.
+##   - If the target moves in `_physics_process`, keep `use_physics_process = true`.
+##   - If the target moves in `_process`, set `use_physics_process = false`.
+## - **Viewport scaling support**: compensates for viewport->window scaling when centering.
 class_name PixelPerfectCamera2D
 extends Camera2D
 
-## Snap method options for pixel-perfect positioning
-enum SnapMethod {
-	## Standard mathematical rounding
-	## Best for: General purpose, balanced behavior
-	## Example: 50.4 → 50, 50.5 → 51, 50.6 → 51
-	ROUND,
-	
-	## Always round down to previous integer
-	## Best for: Preventing objects from going past screen edges
-	## Example: 50.1 → 50, 50.5 → 50, 50.9 → 50
-	FLOOR,
-	
-	## Always round up to next integer
-	## Best for: Maximum screen coverage, aggressive follow
-	## Example: 50.1 → 51, 50.5 → 51, 50.9 → 51
-	CEIL,
-}
-
-# --- Configuration ---
-
-## Enable pixel-perfect behavior
+## Enable pixel-perfect behavior.
 @export var pixel_perfect: bool = true
 
-## Method used to snap coordinates to integers
-@export var snap_method: SnapMethod = SnapMethod.ROUND
+## Which update cycle to use for applying the pixel-perfect offset.
+## Must match the followed target's update cycle.
+@export var use_physics_process: bool = true
 
+var _viewport_size: Vector2
+var _window_size: Vector2
+var _scale_factor: Vector2
+var _visible_rect: Rect2
+
+
+## Initializes process mode and caches viewport/window metrics used for pixel-perfect correction.
+## Must run after the node is inside a viewport.
 func _ready() -> void:
-	# CRITICAL: Run after the engine's internal Camera2D process to capture final positions
-	# Camera2D updates its transform in the internal process
-	process_priority = 100
-	
-	# We rely on standard Camera2D behavior, so we don't detach (top_level = false)
-	# and we don't disable built-in drag or smoothing.
+	# Configure which process mode to use.
+	set_process(not use_physics_process)
+	set_physics_process(use_physics_process)
 
-func _process(delta: float) -> void:
+	# Use drag center for proper following.
+	anchor_mode = Camera2D.ANCHOR_MODE_DRAG_CENTER
+
+	_refresh_scaling_cache()
+
+
+## Applies pixel-perfect correction during `_process` when `use_physics_process` is disabled.
+func _process(_delta: float) -> void:
+	if not use_physics_process:
+		_apply_pixel_perfect()
+
+
+## Applies pixel-perfect correction during `_physics_process` when `use_physics_process` is enabled.
+func _physics_process(_delta: float) -> void:
+	if use_physics_process:
+		_apply_pixel_perfect()
+
+
+## Refreshes cached viewport/window data.
+## Uses `Viewport.get_visible_rect()` so windowed-mode / letterboxed configurations are accounted for.
+func _refresh_scaling_cache() -> void:
+	_viewport_size = get_viewport_rect().size
+	_window_size = DisplayServer.window_get_size()
+	_scale_factor = _window_size / _viewport_size
+	_visible_rect = get_viewport().get_visible_rect()
+
+
+## Computes the world-space offset needed to keep the visible area centered.
+## `visible_rect.position` is non-zero when the viewport is letterboxed/pillarboxed inside the window.
+func _compute_centering_offset(viewport_size: Vector2, visible_rect: Rect2, camera_zoom: Vector2) -> Vector2:
+	var viewport_center: Vector2 = viewport_size / 2.0
+	var visible_center: Vector2 = visible_rect.position + (visible_rect.size / 2.0)
+	return (visible_center - viewport_center) / camera_zoom
+
+
+## Rounds the final camera position to whole pixels and applies the correction via `offset`.
+## Does not overwrite `global_position` to avoid fighting follow/smoothing/RemoteTransform2D.
+func _apply_pixel_perfect() -> void:
 	if not pixel_perfect or not enabled:
 		return
-	
-	var parent: Node = get_parent()
-	if not parent or not (parent is Node2D):
-		return
-		
-	# 1. Update Camera2D position to follow parent if needed
-	# This works WITH built-in drag margins, not against them
-	if not drag_horizontal_enabled and not drag_vertical_enabled:
-		# No drag margins - direct follow
-		global_position = parent.global_position
-	# If drag margins are enabled, Camera2D handles following automatically
-	
-	# 2. Snap the Global Position to Grid (Rendering Layer)
-	# This ensures the camera ALWAYS sits on an integer pixel
-	var target_global_pos = global_position
-	var snapped_pos := Vector2.ZERO
-	
-	match snap_method:
-		SnapMethod.ROUND:
-			snapped_pos = target_global_pos.round()
-		SnapMethod.FLOOR:
-			snapped_pos = target_global_pos.floor()
-		SnapMethod.CEIL:
-			snapped_pos = target_global_pos.ceil()
-			
-	# 3. Apply to Camera
-	# This slightly adjusts the camera for this frame to align with pixels
-	# It does not break the internal drag logic because the delta is < 1px
-	global_position = snapped_pos
-	
-	# 4. Force Engine Update
-	# This prevents one-frame lag artifacts by committing the scroll immediately
-	force_update_scroll()
 
-## Debug function - outputs camera status in a single log
-func debug_status() -> void:
-	var status_lines: PackedStringArray = []
-	status_lines.append("PixelPerfectCam Status:")
-	status_lines.append("  Global Pos (Snapped): %s" % global_position)
-	
-	var parent = get_parent()
-	if parent is Node2D:
-		status_lines.append("  Parent Pos: %s" % parent.global_position)
-		status_lines.append("  Delta: %s" % (parent.global_position - global_position))
-	
-	status_lines.append("  Built-in Drag: H=%s, V=%s" % [drag_horizontal_enabled, drag_vertical_enabled])
-	status_lines.append("  Built-in Smoothing: %s" % position_smoothing_enabled)
-	
-	print("\n".join(status_lines))
+	# Get the current position (after built-in Camera2D behavior).
+	var current_position: Vector2 = global_position
+
+	# Round to whole pixels.
+	var pixel_perfect_position: Vector2 = current_position.round()
+
+	# Account for viewport/window scaling when centering.
+	var centering_offset: Vector2 = _compute_centering_offset(_viewport_size, _visible_rect, zoom)
+
+	# Apply correction via Offset so we don't fight follow/smoothing/RemoteTransform2D.
+	offset = (pixel_perfect_position - current_position) + centering_offset
