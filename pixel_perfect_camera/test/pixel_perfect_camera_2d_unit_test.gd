@@ -7,7 +7,7 @@
 extends GdUnitTestSuite
 
 func _create_camera(use_physics: bool) -> PixelPerfectCamera2D:
-	var camera: PixelPerfectCamera2D = preload("res://addons/pixel_perfect_camera/pixel_perfect_camera_2d.gd").new() as PixelPerfectCamera2D
+	var camera: PixelPerfectCamera2D = PixelPerfectCamera2D.new()
 	camera.use_physics_process = use_physics
 	camera.pixel_perfect = true
 	add_child(camera)
